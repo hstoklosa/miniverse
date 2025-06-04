@@ -13,8 +13,12 @@ client = OpenAI(
 
 model = "openai/gpt-4o-mini"
 
+
 def start_conversation(assistant1_prompt, assistant2_prompt, topic, turns=10):
-    messages = [{ "role": "system", "content": f"This is a conversation about: {topic}" }]
+    messages = [{ 
+        "role": "system", 
+        "content": f"This is a conversation about: {topic}. Do not use markdown formatting." 
+    }]
     curr_assistant = assistant1_prompt
 
     for t in range(turns):
@@ -35,8 +39,8 @@ def start_conversation(assistant1_prompt, assistant2_prompt, topic, turns=10):
             messages=messages,
             temperature=0.7,
         )
-
         assistant_response = response.choices[0].message.content
+
         print(f"{assistant_name}: {assistant_response}\n")
         
         # Add the assistant's response to the messages
@@ -47,7 +51,10 @@ def start_conversation(assistant1_prompt, assistant2_prompt, topic, turns=10):
 
     return messages
 
+
 if __name__ == "__main__":
-    assistant1_prompt = "You are a helpful AI assistant with expertise in technology. Respond in a friendly, informative manner."
-    assistant2_prompt = "You are a skeptical AI assistant who questions assumptions. Respond thoughtfully but with a critical perspective."
-    start_conversation(assistant1_prompt, assistant2_prompt, "The future of artificial intelligence")
+    assistant1_prompt = "expertise in technology, friendly, informative"
+    assistant2_prompt = "skeptical, questions assumptions, thoughtful, critical perspective"
+    topic = "The future of artificial intelligence"
+    
+    start_conversation(assistant1_prompt, assistant2_prompt, topic)
