@@ -29,18 +29,30 @@ def start_conversation(assistant1_config, assistant2_config, topic, turns=10):
         # Add the assistant prompt to the messages
         messages.append({ "role": "system", "content": assistant_config["instructions"] })
 
-        # Generate a response from the current assistant
+        print(f"{assistant_config['name']}: ", end="", flush=True)
+        
+        # Generate a response from the current assistant with streaming
+        full_response = ""
         response = client.chat.completions.create(
             model=assistant_config["model"],
             messages=messages,
             temperature=0.7,
+            stream=True,
         )
-        assistant_response = response.choices[0].message.content
+        
+        # Process the streaming response
+        for chunk in response:
+            if not chunk.choices[0].delta.content:
+                continue
 
-        print(f"{assistant_config['name']}: {assistant_response}\n")
+            content = chunk.choices[0].delta.content
+            full_response += content
+            print(content, end="", flush=True)
+        
+        print("\n")
         
         # Add the assistant's response to the messages
-        messages.append({ "role": "assistant", "content": assistant_response })
+        messages.append({ "role": "assistant", "content": full_response })
 
         # Switch to the next assistant
         curr_assistant = assistant2_config if curr_assistant == assistant1_config else assistant1_config
