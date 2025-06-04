@@ -5,20 +5,49 @@ from openai import OpenAI
 # Load environment variables
 load_dotenv()
 
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-
-# Initialize OpenAI client
+# Initialise OpenAI client
 client = OpenAI(
-    api_key=OPENROUTER_API_KEY,
+    api_key=os.getenv("OPENROUTER_API_KEY"),
     base_url="https://openrouter.ai/api/v1",
 )
 
 model = "openai/gpt-4o-mini"
-prompt = "What is the capital of England?"
 
-response = client.chat.completions.create(
-    model=model,
-    messages=[{"role": "user", "content": prompt}],
-)
+def start_conversation(assistant1_prompt, assistant2_prompt, topic, turns=10):
+    messages = [{ "role": "system", "content": f"This is a conversation about: {topic}" }]
+    curr_assistant = assistant1_prompt
 
-print(response.choices[0].message.content)
+    for t in range(turns):
+        # Select the current assistant prompt
+        if curr_assistant == assistant1_prompt:
+            assistant_prompt = assistant1_prompt
+            assistant_name = "Assistant 1"
+        else:
+            assistant_prompt = assistant2_prompt
+            assistant_name = "Assistant 2"
+
+        # Add the assistant prompt to the messages
+        messages.append({ "role": "system", "content": assistant_prompt })
+
+        # Generate a response from the current assistant
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=0.7,
+        )
+
+        assistant_response = response.choices[0].message.content
+        print(f"{assistant_name}: {assistant_response}\n")
+        
+        # Add the assistant's response to the messages
+        messages.append({ "role": "assistant", "content": assistant_response })
+
+        # Switch to the next assistant
+        curr_assistant = assistant2_prompt if curr_assistant == assistant1_prompt else assistant1_prompt
+
+    return messages
+
+if __name__ == "__main__":
+    assistant1_prompt = "You are a helpful AI assistant with expertise in technology. Respond in a friendly, informative manner."
+    assistant2_prompt = "You are a skeptical AI assistant who questions assumptions. Respond thoughtfully but with a critical perspective."
+    start_conversation(assistant1_prompt, assistant2_prompt, "The future of artificial intelligence")
